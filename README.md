@@ -1,3 +1,7 @@
+Solutions to Advent of Code 2020 in Rust, forked from @coriolinus' wonderful initialiser (since lord knows figuring out enough Rust to solve the daily problems will be tricky enough without all the plumbing!). Their original README below:
+
+------------------------------------------------------------------
+
 # Advent of Code 2020
 
 Solutions to the exercises at <https://adventofcode.com/2020/>.
