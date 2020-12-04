@@ -11,8 +11,8 @@ lazy_static!{
 }
 
 struct PasswordEntry {
-    min: usize,
-    max: usize,
+    first_number: usize,
+    second_number: usize,
     letter: char,
     password: String,
 }
@@ -29,8 +29,8 @@ impl FromStr for PasswordEntry {
 
         Ok(
             PasswordEntry{
-                min: capture_groups[1].parse().unwrap(),
-                max: capture_groups[2].parse().unwrap(),
+                first_number: capture_groups[1].parse().unwrap(),
+                second_number: capture_groups[2].parse().unwrap(),
                 letter: capture_groups[3].chars().next().unwrap(),
                 password: String::from(&capture_groups[4])
             }
@@ -44,8 +44,9 @@ fn valid_password(entry: &PasswordEntry) -> bool {
                     .filter(|c| *c == entry.letter)
                     .count();
 
-    count >= entry.min && count <= entry.max
+    count >= entry.first_number && count <= entry.second_number
 }
+
 
 fn valid_password_count<I>(entries: I) -> usize
 where
@@ -53,6 +54,25 @@ where
 {
  
     entries.filter(|e| valid_password(e)).count()
+}
+
+fn valid_toboggan_password(entry: &PasswordEntry) -> bool {
+    let password_length = entry.password.chars().count();
+    
+    if password_length < entry.first_number || password_length < entry.second_number {
+        false
+    } else {
+        (entry.password.chars().nth(entry.first_number - 1).unwrap() == entry.letter) ^
+            (entry.password.chars().nth(entry.second_number - 1).unwrap() == entry.letter)
+    }
+}
+
+fn valid_toboggan_password_count<I>(entries: I) -> usize
+where
+    I: Iterator<Item = PasswordEntry>,
+{
+ 
+    entries.filter(|e| valid_toboggan_password(e)).count()
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
@@ -63,8 +83,12 @@ pub fn part1(input: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    let input_iter = parse::<PasswordEntry>(input)?;
+    let count = valid_toboggan_password_count(input_iter);
+
+    println!("The answer to part two is: {}", count);
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -79,10 +103,10 @@ mod tests {
 
     #[test]
     fn test_valid_password(){
-        let good_password = &PasswordEntry{min: 1, max: 3, letter: 'a', password: "abba".to_string()};
+        let good_password = &PasswordEntry{first_number: 1, second_number: 3, letter: 'a', password: "abba".to_string()};
         assert!(valid_password(good_password));
 
-        let bad_password = &PasswordEntry{min: 2, max: 4, letter: 'c', password: "cat".to_string()};
+        let bad_password = &PasswordEntry{first_number: 2, second_number: 4, letter: 'c', password: "cat".to_string()};
         assert!(!valid_password(bad_password));
     }
 
@@ -96,5 +120,31 @@ mod tests {
         let expected = 2;
 
         assert_eq!(valid_password_count(passwords), expected)
+    }
+
+    #[test]
+    fn test_valid_toboggan_password(){
+        assert!{!(true ^ true)}
+
+        let good_password = &PasswordEntry{first_number: 1, second_number: 3, letter: 'a', password: "abcde".to_string()};
+        assert!(valid_toboggan_password(good_password));
+
+        let bad_password = &PasswordEntry{first_number: 1, second_number: 3, letter: 'b', password: "cdefg".to_string()};
+        assert!(!valid_toboggan_password(bad_password));
+        
+        let bad_password = &PasswordEntry{first_number: 2, second_number: 9, letter: 'c', password: "ccccccccc".to_string()};
+        assert!(!valid_toboggan_password(bad_password));
+    }
+
+    #[test]
+    fn test_valid_toboggan_password_count(){
+        let passwords = vec![ 
+            "1-3 a: abcde",
+            "1-3 b: cdefg",
+            "2-9 c: ccccccccc",
+        ].into_iter().map(|s| s.parse::<PasswordEntry>().unwrap());
+        let expected = 1;
+
+        assert_eq!(valid_toboggan_password_count(passwords), expected)
     }
 }
