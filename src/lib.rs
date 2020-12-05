@@ -4,4 +4,4 @@ pub mod geometry;
 pub mod input;
 pub mod website;
 
-pub use input::{parse, CommaSep};
+pub use input::{parse, CommaSep, parse_newline_sep};
