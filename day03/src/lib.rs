@@ -3,40 +3,65 @@ use aoc2020::parse;
 use std::path::Path;
 use thiserror::Error;
 
-fn trees_in_path<I>(mut path: I) -> usize
-where
-    I: Iterator<Item = String>
-{
-    let line_length = path.next().unwrap().chars().count();
+struct Slope {
+    down: usize,
+    right: usize
+}
 
-    let mut count = 0;
-    let mut pos = 0;
+impl Slope {
+    fn trees_in_map(&self, map: &Vec<String>) -> usize
+    {
+        let mut map_iter = map.into_iter();
+        let line_length = map_iter.next().unwrap().chars().count();
 
-    loop {
-        match path.next(){
-            Some(s) => {
-                if s == "" {
-                    return count
-                }
-                pos = (pos + 3) % line_length;
-                if s.chars().nth(pos).unwrap() == '#' {
-                    count += 1;
-                }
-                println!("{} @ {} % {} [{}]", s, pos, line_length, count);
+        let mut count = 0;
+        let mut pos = 0;
+
+        loop {
+            for _ in 1..self.down {
+                map_iter.next();
             }
-            None => return count
+
+            match map_iter.next(){
+
+                Some(s) => {
+                    if s == "" {
+                        return count
+                    }
+                    pos = (pos + self.right) % line_length;
+                    if s.chars().nth(pos as usize).unwrap() == '#' {
+                        count += 1;
+                    }
+                }
+                None => return count
+            }
         }
     }
 }
 
+fn product_of_trees_in_maps(map: Vec<String>) -> usize
+{
+    let slopes = [
+        Slope{down: 1, right: 1},
+        Slope{down: 1, right: 3},
+        Slope{down: 1, right: 5},
+        Slope{down: 1, right: 7},
+        Slope{down:2, right: 1}
+    ];
+
+    slopes.iter().map(|s| s.trees_in_map(&map)).product()
+}
+
 pub fn part1(input: &Path) -> Result<(), Error> {
-    let path = parse::<String>(input)?;
-    println!("The answer to part one is {}", trees_in_path(path));
+    let map: Vec<String> = parse::<String>(input)?.take_while(|s| s != "").collect();
+    println!("The answer to part one is {}", Slope{down:1, right: 3}.trees_in_map(&map));
     Ok(())
 }
 
 pub fn part2(input: &Path) -> Result<(), Error> {
-    unimplemented!()
+    let map: Vec<String> = parse::<String>(input)?.take_while(|s| s != "").collect();
+    println!("The answer to part one is {}", product_of_trees_in_maps(map));
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -45,27 +70,44 @@ pub enum Error {
     Io(#[from] std::io::Error),
 }
 
-// TODO: make the type system maybe not hate my test input
-//
-// #[cfg(test)]
+#[cfg(test)]
 
-// #[test]
-// fn test_trees_in_path() {
-//     let mut example = [
-//         "..##.........##.........##.........##.........##.........##.......".to_string(),
-//         "#..O#...#..#...#...#..#...#...#..#...#...#..#...#...#..#...#...#..".to_string(),
-//         ".#....X..#..#....#..#..#....#..#..#....#..#..#....#..#..#....#..#.".to_string(),
-//         "..#.#...#O#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#".to_string(),
-//         ".#...##..#..X...##..#..#...##..#..#...##..#..#...##..#..#...##..#.".to_string(),
-//         "..#.##.......#.X#.......#.##.......#.##.......#.##.......#.##.....".to_string(),
-//         ".#.#.#....#.#.#.#.O..#.#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#".to_string(),
-//         ".#........#.#........X.#........#.#........#.#........#.#........#".to_string(),
-//         "#.##...#...#.##...#...#.X#...#...#.##...#...#.##...#...#.##...#...".to_string(),
-//         "#...##....##...##....##...#X....##...##....##...##....##...##....#".to_string(),
-//         ".#..#...#.#.#..#...#.#.#..#...X.#.#..#...#.#.#..#...#.#.#..#...#.#".to_string()
-//     ].into_iter();
+#[test]
+fn test_trees_in_map() {
+    let example = &vec![
+        "..##.........##.........##.........##.........##.........##.......".to_string(),
+        "#...#...#..#...#...#..#...#...#..#...#...#..#...#...#..#...#...#..".to_string(),
+        ".#....#..#..#....#..#..#....#..#..#....#..#..#....#..#..#....#..#.".to_string(),
+        "..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#".to_string(),
+        ".#...##..#..#...##..#..#...##..#..#...##..#..#...##..#..#...##..#.".to_string(),
+        "..#.##.......#.##.......#.##.......#.##.......#.##.......#.##.....".to_string(),
+        ".#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#".to_string(),
+        ".#........#.#........#.#........#.#........#.#........#.#........#".to_string(),
+        "#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...".to_string(),
+        "#...##....##...##....##...##....##...##....##...##....##...##....#".to_string(),
+        ".#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#".to_string()
+    ];
 
-//     let expected = 7;
-//     assert_eq!(trees_in_path(example), expected);
-// }   
+    let expected = 7;
+    assert_eq!(Slope{down:1, right: 3}.trees_in_map(example), expected);
+}   
 
+#[test]
+fn test_product_of_trees_in_maps() {
+    let example = vec![
+        "..##.........##.........##.........##.........##.........##.......".to_string(),
+        "#...#...#..#...#...#..#...#...#..#...#...#..#...#...#..#...#...#..".to_string(),
+        ".#....#..#..#....#..#..#....#..#..#....#..#..#....#..#..#....#..#.".to_string(),
+        "..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#..#.#...#.#".to_string(),
+        ".#...##..#..#...##..#..#...##..#..#...##..#..#...##..#..#...##..#.".to_string(),
+        "..#.##.......#.##.......#.##.......#.##.......#.##.......#.##.....".to_string(),
+        ".#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#.#.#.#....#".to_string(),
+        ".#........#.#........#.#........#.#........#.#........#.#........#".to_string(),
+        "#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...".to_string(),
+        "#...##....##...##....##...##....##...##....##...##....##...##....#".to_string(),
+        ".#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#".to_string()
+    ];
+
+    let expected = 336;
+    assert_eq!(product_of_trees_in_maps(example), expected);
+}
