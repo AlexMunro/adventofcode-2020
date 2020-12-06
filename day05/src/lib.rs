@@ -65,14 +65,32 @@ pub fn part1(input: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    let mut ids = parse::<String>(input)?
+                    .take_while(|s| s != "")
+                    .map(|s| Seat::from_str(&s).unwrap().id())
+                    .collect::<Vec<usize>>();
+    ids.sort();
+
+    let first_id = ids[0];
+
+    for i in 1..ids.len() - 1 {
+        if ids[i] != first_id + i {
+            println!("The answer to part one is {}", first_id + i);
+            return Ok(())
+        }
+    }
+
+    Err(Error::Other())
 }
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+
+    #[error("No valid seat ID found")]
+    Other()
 }
 
 #[cfg(test)]
