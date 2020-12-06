@@ -1,8 +1,8 @@
 use aoc2020::parse_newline_sep;
 
+use itertools::Itertools;
 use std::path::Path;
 use thiserror::Error;
-use itertools::Itertools;
 
 fn total_yessed(group_response: String) -> usize {
     group_response
@@ -17,25 +17,27 @@ fn total_completely_yessed(group_response: String) -> usize {
 
     let first_response = individual_responses.next().unwrap();
 
-    first_response.chars().unique().filter(
-        |c| individual_responses.clone().all(|r| r.contains(*c))
-    ).count()
+    first_response
+        .chars()
+        .unique()
+        .filter(|c| individual_responses.clone().all(|r| r.contains(*c)))
+        .count()
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
     let group_responses_count: usize = parse_newline_sep::<String>(input)
-                                        .unwrap()
-                                        .map(|group_response| total_yessed(group_response))
-                                        .sum();
+        .unwrap()
+        .map(|group_response| total_yessed(group_response))
+        .sum();
     println!("The answer to part one is {}", group_responses_count);
     Ok(())
 }
 
 pub fn part2(input: &Path) -> Result<(), Error> {
     let group_responses_count: usize = parse_newline_sep::<String>(input)
-                                        .unwrap()
-                                        .map(|group_response| total_completely_yessed(group_response))
-                                        .sum();
+        .unwrap()
+        .map(|group_response| total_completely_yessed(group_response))
+        .sum();
     println!("The answer to part two is {}", group_responses_count);
     Ok(())
 }
@@ -47,7 +49,6 @@ pub enum Error {
 }
 
 #[cfg(test)]
-
 #[test]
 fn test_total_yessed() {
     assert_eq!(total_yessed("abc".to_string()), 3);
@@ -57,7 +58,7 @@ fn test_total_yessed() {
 }
 
 #[test]
-fn test_total_completely_yessed(){
+fn test_total_completely_yessed() {
     assert_eq!(total_completely_yessed("abc".to_string()), 3);
     assert_eq!(total_completely_yessed("a\na".to_string()), 1);
     assert_eq!(total_completely_yessed("a\nb".to_string()), 0);

@@ -1,14 +1,13 @@
 use aoc2020::parse_newline_sep;
 
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::collections::HashMap;
 use std::path::Path;
 use std::str::FromStr;
-use std::collections::HashMap;
 use thiserror::Error;
-use regex::Regex;
-use lazy_static::lazy_static;
 
-
-struct Passport{
+struct Passport {
     ecl: String,
     pid: String,
     eyr: String,
@@ -18,7 +17,7 @@ struct Passport{
     hgt: String,
 }
 
-lazy_static!{
+lazy_static! {
     static ref HGT_CM: Regex = Regex::new(r"^(\d\d\d)cm$").unwrap();
     static ref HGT_IN: Regex = Regex::new(r"^(\d\d)in$").unwrap();
     static ref HCL: Regex = Regex::new(r"^#[\da-f]{6}$").unwrap();
@@ -27,54 +26,57 @@ lazy_static!{
 
 impl Passport {
     fn complete(&self) -> bool {
-        [&self.ecl, &self.pid, &self.eyr, &self.hcl, &self.byr, &self.iyr, &self.hgt]
-            .iter()
-            .all(|field| *field != "")
+        [
+            &self.ecl, &self.pid, &self.eyr, &self.hcl, &self.byr, &self.iyr, &self.hgt,
+        ]
+        .iter()
+        .all(|field| *field != "")
     }
 
     fn valid(&self) -> bool {
-        self.valid_byr() && self.valid_iyr() && self.valid_eyr() && self.valid_hgt() &&
-            self.valid_hcl() && self.valid_ecl() && self.valid_pid()
+        self.valid_byr()
+            && self.valid_iyr()
+            && self.valid_eyr()
+            && self.valid_hgt()
+            && self.valid_hcl()
+            && self.valid_ecl()
+            && self.valid_pid()
     }
 
     fn valid_byr(&self) -> bool {
-        match self.byr.parse::<usize>(){
+        match self.byr.parse::<usize>() {
             Ok(n) => 1920 <= n && n <= 2002,
-            Err(_) => false
+            Err(_) => false,
         }
     }
 
     fn valid_iyr(&self) -> bool {
-        match self.iyr.parse::<usize>(){
+        match self.iyr.parse::<usize>() {
             Ok(n) => 2010 <= n && n <= 2020,
-            Err(_) => false
+            Err(_) => false,
         }
     }
-    
+
     fn valid_eyr(&self) -> bool {
-        match self.eyr.parse::<usize>(){
+        match self.eyr.parse::<usize>() {
             Ok(n) => 2020 <= n && n <= 2030,
-            Err(_) => false
+            Err(_) => false,
         }
     }
 
     fn valid_hgt(&self) -> bool {
-        match HGT_CM.captures(&self.hgt){
+        match HGT_CM.captures(&self.hgt) {
             Some(captures) => {
                 let height = captures.get(1).unwrap().as_str().parse::<usize>().unwrap();
                 150 <= height && height <= 193
             }
-            None => {
-                match HGT_IN.captures(&self.hgt){
-                    Some(captures) => {
-                        let height = captures.get(1).unwrap().as_str().parse::<usize>().unwrap();
-                        59 <= height && height <= 76
-                    }
-                    None => {
-                        false
-                    }
+            None => match HGT_IN.captures(&self.hgt) {
+                Some(captures) => {
+                    let height = captures.get(1).unwrap().as_str().parse::<usize>().unwrap();
+                    59 <= height && height <= 76
                 }
-            }
+                None => false,
+            },
         }
     }
 
@@ -106,7 +108,7 @@ impl FromStr for Passport {
 
         passport_fields.insert("cid", "North Pole (probably, I guess)");
 
-        Ok(Passport{
+        Ok(Passport {
             ecl: passport_fields.get("ecl").unwrap_or(&"").to_string(),
             pid: passport_fields.get("pid").unwrap_or(&"").to_string(),
             eyr: passport_fields.get("eyr").unwrap_or(&"").to_string(),
@@ -119,17 +121,17 @@ impl FromStr for Passport {
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
-    let complete_count = parse_newline_sep::<Passport>(input)
-                        ?.filter(|p| p.complete())
-                        .count(); 
+    let complete_count = parse_newline_sep::<Passport>(input)?
+        .filter(|p| p.complete())
+        .count();
     println!("The answer to part one is {}", complete_count);
     Ok(())
 }
 
 pub fn part2(input: &Path) -> Result<(), Error> {
-    let valid_count = parse_newline_sep::<Passport>(input)
-                        ?.filter(|p| p.complete() && p.valid())
-                        .count(); 
+    let valid_count = parse_newline_sep::<Passport>(input)?
+        .filter(|p| p.complete() && p.valid())
+        .count();
     println!("The answer to part twp is {}", valid_count);
     Ok(())
 }
@@ -141,9 +143,8 @@ pub enum Error {
 }
 
 #[cfg(test)]
-
 #[test]
-fn test_complete_passport(){
+fn test_complete_passport() {
     let good_passport_str = "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd \
         byr:1937 iyr:2017 cid:147 hgt:183cm";
     let good_passport = Passport::from_str(good_passport_str).unwrap();
@@ -156,7 +157,7 @@ fn test_complete_passport(){
 }
 
 #[test]
-fn test_valid_byr(){
+fn test_valid_byr() {
     let good_passport = Passport::from_str("byr:1980").unwrap();
     assert!(good_passport.valid_byr());
 
@@ -171,7 +172,7 @@ fn test_valid_byr(){
 }
 
 #[test]
-fn test_valid_iyr(){
+fn test_valid_iyr() {
     let good_passport = Passport::from_str("iyr:2017").unwrap();
     assert!(good_passport.valid_iyr());
 
@@ -180,7 +181,7 @@ fn test_valid_iyr(){
 }
 
 #[test]
-fn test_valid_eyr(){
+fn test_valid_eyr() {
     let good_passport = Passport::from_str("eyr:2025").unwrap();
     assert!(good_passport.valid_eyr());
 
@@ -189,7 +190,7 @@ fn test_valid_eyr(){
 }
 
 #[test]
-fn test_valid_hgt(){
+fn test_valid_hgt() {
     // cm
     let good_passport = Passport::from_str("hgt:180cm").unwrap();
     assert!(good_passport.valid_hgt());
@@ -216,7 +217,7 @@ fn test_valid_hgt(){
 }
 
 #[test]
-fn test_valid_hcl(){
+fn test_valid_hcl() {
     let good_passport = Passport::from_str("hcl:#3a2bff").unwrap();
     assert!(good_passport.valid_hcl());
 
@@ -228,7 +229,7 @@ fn test_valid_hcl(){
 }
 
 #[test]
-fn test_valid_ecl(){
+fn test_valid_ecl() {
     let good_passport = Passport::from_str("ecl:amb").unwrap();
     assert!(good_passport.valid_ecl());
 
@@ -240,7 +241,7 @@ fn test_valid_ecl(){
 }
 
 #[test]
-fn test_valid_pid(){
+fn test_valid_pid() {
     let good_passport = Passport::from_str("pid:123456789").unwrap();
     assert!(good_passport.valid_pid());
 
@@ -252,7 +253,7 @@ fn test_valid_pid(){
 }
 
 #[test]
-fn test_valid_passport(){
+fn test_valid_passport() {
     let good_passport_str = "pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980 \
         hcl:#623a2f";
     let good_passport = Passport::from_str(good_passport_str).unwrap();

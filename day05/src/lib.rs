@@ -1,19 +1,19 @@
 use aoc2020::parse;
 
 use std::path::Path;
-use thiserror::Error;
 use std::str::FromStr;
+use thiserror::Error;
 
 #[derive(Debug, PartialEq)]
-struct Seat{
+struct Seat {
     row: usize,
-    column: usize
+    column: usize,
 }
 
-impl FromStr for Seat{
+impl FromStr for Seat {
     type Err = String;
 
-    fn from_str(s: &str) -> Result::<Self, Self::Err>{
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut s_iter = s.chars();
 
         let mut row_lower_bound = 0;
@@ -21,11 +21,11 @@ impl FromStr for Seat{
 
         while row_lower_bound < row_upper_bound {
             let adjustment = (row_upper_bound - row_lower_bound + 1) / 2;
-            
-            match s_iter.next().unwrap(){
+
+            match s_iter.next().unwrap() {
                 'F' => row_upper_bound -= adjustment,
                 'B' => row_lower_bound += adjustment,
-                _ => return Err("Invalid character for finding row".to_string())
+                _ => return Err("Invalid character for finding row".to_string()),
             }
         }
 
@@ -34,17 +34,18 @@ impl FromStr for Seat{
 
         while column_lower_bound < column_upper_bound {
             let adjustment = (column_upper_bound - column_lower_bound + 1) / 2;
-            
-            match s_iter.next().unwrap(){
+
+            match s_iter.next().unwrap() {
                 'L' => column_upper_bound -= adjustment,
                 'R' => column_lower_bound += adjustment,
-                _ => return Err("Invalid character finding column".to_string())
+                _ => return Err("Invalid character finding column".to_string()),
             }
         }
 
-        Ok(
-            Seat{row: row_lower_bound, column: column_lower_bound}
-        )
+        Ok(Seat {
+            row: row_lower_bound,
+            column: column_lower_bound,
+        })
     }
 }
 
@@ -56,10 +57,10 @@ impl Seat {
 
 pub fn part1(input: &Path) -> Result<(), Error> {
     let max_id = parse::<String>(input)?
-                    .take_while(|s| s != "")
-                    .map(|s| Seat::from_str(&s).unwrap().id())
-                    .max()
-                    .unwrap();
+        .take_while(|s| s != "")
+        .map(|s| Seat::from_str(&s).unwrap().id())
+        .max()
+        .unwrap();
 
     println!("The answer to part one is {}", max_id);
     Ok(())
@@ -67,9 +68,9 @@ pub fn part1(input: &Path) -> Result<(), Error> {
 
 pub fn part2(input: &Path) -> Result<(), Error> {
     let mut ids = parse::<String>(input)?
-                    .take_while(|s| s != "")
-                    .map(|s| Seat::from_str(&s).unwrap().id())
-                    .collect::<Vec<usize>>();
+        .take_while(|s| s != "")
+        .map(|s| Seat::from_str(&s).unwrap().id())
+        .collect::<Vec<usize>>();
     ids.sort();
 
     let first_id = ids[0];
@@ -77,7 +78,7 @@ pub fn part2(input: &Path) -> Result<(), Error> {
     for i in 1..ids.len() - 1 {
         if ids[i] != first_id + i {
             println!("The answer to part one is {}", first_id + i);
-            return Ok(())
+            return Ok(());
         }
     }
 
@@ -90,21 +91,39 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error("No valid seat ID found")]
-    Other()
+    Other(),
 }
 
 #[cfg(test)]
-
 #[test]
 fn test_seat_from_str() {
-    assert_eq!(Seat::from_str("BFFFBBFRRR").unwrap(), Seat{row: 70, column: 7});
-    assert_eq!(Seat::from_str("FFFBBBFRRR").unwrap(), Seat{row: 14, column: 7});
-    assert_eq!(Seat::from_str("BBFFBBFRLL").unwrap(), Seat{row: 102, column: 4});
+    assert_eq!(
+        Seat::from_str("BFFFBBFRRR").unwrap(),
+        Seat { row: 70, column: 7 }
+    );
+    assert_eq!(
+        Seat::from_str("FFFBBBFRRR").unwrap(),
+        Seat { row: 14, column: 7 }
+    );
+    assert_eq!(
+        Seat::from_str("BBFFBBFRLL").unwrap(),
+        Seat {
+            row: 102,
+            column: 4
+        }
+    );
 }
 
 #[test]
 fn test_seat_id() {
-    assert_eq!(Seat{row: 70, column: 7}.id(), 567);
-    assert_eq!(Seat{row: 14, column: 7}.id(), 119);
-    assert_eq!(Seat{row: 102, column: 4}.id(), 820);
+    assert_eq!(Seat { row: 70, column: 7 }.id(), 567);
+    assert_eq!(Seat { row: 14, column: 7 }.id(), 119);
+    assert_eq!(
+        Seat {
+            row: 102,
+            column: 4
+        }
+        .id(),
+        820
+    );
 }

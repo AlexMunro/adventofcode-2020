@@ -5,12 +5,11 @@ use thiserror::Error;
 
 struct Slope {
     down: usize,
-    right: usize
+    right: usize,
 }
 
 impl Slope {
-    fn trees_in_map(&self, map: &Vec<String>) -> usize
-    {
+    fn trees_in_map(&self, map: &Vec<String>) -> usize {
         let mut map_iter = map.into_iter();
         let line_length = map_iter.next().unwrap().chars().count();
 
@@ -22,31 +21,29 @@ impl Slope {
                 map_iter.next();
             }
 
-            match map_iter.next(){
-
+            match map_iter.next() {
                 Some(s) => {
                     if s == "" {
-                        return count
+                        return count;
                     }
                     pos = (pos + self.right) % line_length;
                     if s.chars().nth(pos as usize).unwrap() == '#' {
                         count += 1;
                     }
                 }
-                None => return count
+                None => return count,
             }
         }
     }
 }
 
-fn product_of_trees_in_maps(map: Vec<String>) -> usize
-{
+fn product_of_trees_in_maps(map: Vec<String>) -> usize {
     let slopes = [
-        Slope{down: 1, right: 1},
-        Slope{down: 1, right: 3},
-        Slope{down: 1, right: 5},
-        Slope{down: 1, right: 7},
-        Slope{down:2, right: 1}
+        Slope { down: 1, right: 1 },
+        Slope { down: 1, right: 3 },
+        Slope { down: 1, right: 5 },
+        Slope { down: 1, right: 7 },
+        Slope { down: 2, right: 1 },
     ];
 
     slopes.iter().map(|s| s.trees_in_map(&map)).product()
@@ -54,13 +51,19 @@ fn product_of_trees_in_maps(map: Vec<String>) -> usize
 
 pub fn part1(input: &Path) -> Result<(), Error> {
     let map: Vec<String> = parse::<String>(input)?.take_while(|s| s != "").collect();
-    println!("The answer to part one is {}", Slope{down:1, right: 3}.trees_in_map(&map));
+    println!(
+        "The answer to part one is {}",
+        Slope { down: 1, right: 3 }.trees_in_map(&map)
+    );
     Ok(())
 }
 
 pub fn part2(input: &Path) -> Result<(), Error> {
     let map: Vec<String> = parse::<String>(input)?.take_while(|s| s != "").collect();
-    println!("The answer to part one is {}", product_of_trees_in_maps(map));
+    println!(
+        "The answer to part one is {}",
+        product_of_trees_in_maps(map)
+    );
     Ok(())
 }
 
@@ -71,7 +74,6 @@ pub enum Error {
 }
 
 #[cfg(test)]
-
 #[test]
 fn test_trees_in_map() {
     let example = &vec![
@@ -85,12 +87,12 @@ fn test_trees_in_map() {
         ".#........#.#........#.#........#.#........#.#........#.#........#".to_string(),
         "#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...".to_string(),
         "#...##....##...##....##...##....##...##....##...##....##...##....#".to_string(),
-        ".#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#".to_string()
+        ".#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#".to_string(),
     ];
 
     let expected = 7;
-    assert_eq!(Slope{down:1, right: 3}.trees_in_map(example), expected);
-}   
+    assert_eq!(Slope { down: 1, right: 3 }.trees_in_map(example), expected);
+}
 
 #[test]
 fn test_product_of_trees_in_maps() {
@@ -105,7 +107,7 @@ fn test_product_of_trees_in_maps() {
         ".#........#.#........#.#........#.#........#.#........#.#........#".to_string(),
         "#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...#.##...#...".to_string(),
         "#...##....##...##....##...##....##...##....##...##....##...##....#".to_string(),
-        ".#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#".to_string()
+        ".#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#.#..#...#.#".to_string(),
     ];
 
     let expected = 336;
