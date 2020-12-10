@@ -65,14 +65,65 @@ fn execute(program: Vec<Command>) -> isize {
     }
 }
 
+fn execute_with_flip(program: &Vec<Command>, flipped_instr: usize) -> Option<isize> {
+    if program[flipped_instr].operator == "acc" {
+        return None;
+    }
+
+    let mut instruction_ptr = 0;
+    let mut acc = 0;
+
+    let mut executed_indices = HashSet::<usize>::new();
+
+    loop {
+        if instruction_ptr == program.len() {
+            return Some(acc);
+        }
+
+        if executed_indices.contains(&(instruction_ptr as usize)) {
+            return None;
+        }
+
+        executed_indices.insert(instruction_ptr as usize);
+
+        let command = &program[instruction_ptr as usize];
+        match command.operator.as_str() {
+            "acc" => acc += command.operand,
+            "jmp" => {
+                if instruction_ptr as usize != flipped_instr {
+                    instruction_ptr = (command.operand + instruction_ptr as isize) as usize - 1
+                }
+            }
+            "nop" => {
+                if instruction_ptr as usize == flipped_instr {
+                    instruction_ptr = (command.operand + instruction_ptr as isize) as usize - 1
+                }
+            }
+            _ => panic!("Invalid operator"),
+        }
+        instruction_ptr += 1;
+    }
+}
+
+fn find_corrupted_instr(program: Vec<Command>) -> isize {
+    (0..program.len())
+        .find_map(|n| execute_with_flip(&program, n))
+        .expect("Could not find corrupted instruction")
+}
+
 pub fn part1(input: &Path) -> Result<(), Error> {
     let program = parse::<Command>(input)?.collect();
     println!("The answer to part one is {}", execute(program));
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    let program = parse::<Command>(input)?.collect();
+    println!(
+        "The answer to part two is {}",
+        find_corrupted_instr(program)
+    );
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -84,12 +135,24 @@ pub enum Error {
 #[cfg(test)]
 #[test]
 fn test_execute() {
-    assert_eq!(2 + 2, 4);
     let example: Vec<Command> = [
         "acc +1", "nop +0", "jmp +4", "acc +3", "jmp -3", "acc -99", "acc +1", "jmp -4", "acc +6",
     ]
     .iter()
     .map(|s| Command::from_str(s).unwrap())
     .collect();
+
     assert_eq!(execute(example), 5);
+}
+
+#[test]
+fn test_find_corrupted_instr() {
+    let example: Vec<Command> = [
+        "acc +1", "nop +0", "jmp +4", "acc +3", "jmp -3", "acc -99", "acc +1", "jmp -4", "acc +6",
+    ]
+    .iter()
+    .map(|s| Command::from_str(s).unwrap())
+    .collect();
+
+    assert_eq!(find_corrupted_instr(example), 8);
 }
