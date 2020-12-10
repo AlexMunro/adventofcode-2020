@@ -158,13 +158,19 @@ fn total_contained_by_shiny_gold(bag_map: BagMap) -> usize {
 
 pub fn part1(input: &Path) -> Result<(), Error> {
     let bag_map: BagMap = parse::<ParsedEntry>(input)?.collect();
-    println!("The answer to part one is: {}", total_containing_shiny_gold(bag_map));
+    println!(
+        "The answer to part one is: {}",
+        total_containing_shiny_gold(bag_map)
+    );
     Ok(())
 }
 
 pub fn part2(input: &Path) -> Result<(), Error> {
     let bag_map: BagMap = parse::<ParsedEntry>(input)?.collect();
-    println!("The answer to part two is: {}", total_contained_by_shiny_gold(bag_map));
+    println!(
+        "The answer to part two is: {}",
+        total_contained_by_shiny_gold(bag_map)
+    );
     Ok(())
 }
 

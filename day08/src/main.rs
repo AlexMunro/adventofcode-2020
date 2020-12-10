@@ -1,5 +1,5 @@
 use aoc2020::config::Config;
-use day07::{part1, part2};
+use day08::{part1, part2};
 
 use color_eyre::eyre::Result;
 use std::path::PathBuf;
