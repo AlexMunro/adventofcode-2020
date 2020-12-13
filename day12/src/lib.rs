@@ -108,6 +108,37 @@ fn manhattan_dist(instrs: impl Iterator<Item = Instruction>) -> usize {
     (x.abs() + y.abs()) as usize
 }
 
+fn waypoint_manhattan_dist(instrs: impl Iterator<Item = Instruction>) -> usize {
+    let mut x = 0 as isize;
+    let mut y = 0 as isize;
+    let mut waypoint = (10 as isize, 1 as isize);
+
+    for i in instrs {
+        match i.dir {
+            Direction::North => waypoint = (waypoint.0, waypoint.1 + i.amount as isize),
+            Direction::South => waypoint = (waypoint.0, waypoint.1 - i.amount as isize),
+            Direction::East => waypoint = (waypoint.0 + i.amount as isize, waypoint.1),
+            Direction::West => waypoint = (waypoint.0 - i.amount as isize, waypoint.1),
+            Direction::Forward => {
+                x += waypoint.0 * i.amount as isize;
+                y += waypoint.1 * i.amount as isize;
+            }
+            Direction::Left => {
+                for _ in 0..(i.amount / 90) {
+                    waypoint = (-waypoint.1, waypoint.0)
+                }
+            }
+            Direction::Right => {
+                for _ in 0..(i.amount / 90) {
+                    waypoint = (waypoint.1, -waypoint.0)
+                }
+            }
+        }
+    }
+
+    (x.abs() + y.abs()) as usize
+}
+
 pub fn part1(input: &Path) -> Result<(), Error> {
     println!(
         "The answer to part one is {}",
@@ -116,8 +147,12 @@ pub fn part1(input: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    println!(
+        "The answer to part one is {}",
+        waypoint_manhattan_dist(parse(input)?)
+    );
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -134,4 +169,13 @@ fn test_manhattan_dist() {
         .map(|s| Instruction::from_str(s).unwrap());
 
     assert_eq!(manhattan_dist(example), 25);
+}
+
+#[test]
+fn test_waypoint_manhattan_dist() {
+    let example = ["F10", "N3", "F7", "R90", "F11"]
+        .iter()
+        .map(|s| Instruction::from_str(s).unwrap());
+
+    assert_eq!(waypoint_manhattan_dist(example), 286)
 }
