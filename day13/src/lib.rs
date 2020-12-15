@@ -15,7 +15,7 @@ fn earliest_departure(timestamp: usize, ids: Vec<usize>) -> usize {
 }
 
 fn earliest_contiguous_departure(id_list: String) -> usize {
-    let mut ids: Vec<(usize, usize)> = id_list
+    let mut buses: Vec<(usize, usize)> = id_list
         .split(",")
         .enumerate()
         .filter_map(|(x, y)| match y.parse::<usize>().ok() {
@@ -24,13 +24,21 @@ fn earliest_contiguous_departure(id_list: String) -> usize {
         })
         .collect();
 
-    // Largest ID first
-    ids.sort_by(|(_, id_a), (_, id_b)| id_b.cmp(id_a));
+    // Something something Chinese remainder theorem
+    buses.sort_by(|(_, id_a), (_, id_b)| id_a.cmp(id_b));
 
-    (1..)
-        .map(|n| (n * ids[0].1) - ids[0].0)
-        .find(|n| ids.iter().all(|(pos, id)| (n + pos) % id == 0))
-        .unwrap()
+    let (offset, mut cycle_length) = buses.pop().unwrap();
+
+    let mut timestamp = cycle_length - offset;
+
+    while buses.len() > 0 {
+        timestamp += cycle_length;
+
+        let matches = buses.iter().filter(|(pos, id)| (timestamp + pos) % id == 0);
+        cycle_length = matches.fold(cycle_length, |acc, (_, id)| acc * id);
+        buses.retain(|(pos, id)| (timestamp + pos) % id != 0);
+    }
+    timestamp
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
