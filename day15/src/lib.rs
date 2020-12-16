@@ -30,8 +30,15 @@ pub fn part1(input: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    println!(
+        "The answer to part one is {}",
+        nth_turn(
+            &parse::<CommaSep<usize>>(input)?.flatten().collect(),
+            30000000
+        )
+    );
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -73,4 +80,7 @@ fn test_nth_turn() {
 
     let example = vec![3, 1, 2];
     assert_eq!(nth_turn(&example, 2020), 1836);
+
+    let example = vec![0, 3, 6];
+    assert_eq!(nth_turn(&example, 30000000), 175594);
 }
