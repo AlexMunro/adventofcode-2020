@@ -61,7 +61,7 @@ fn cycle_cubes(cubes: HashSet<Vec<isize>>, n: usize) -> HashSet<Vec<isize>> {
     (0..n).fold(cubes, |prev_cubes, _| cycle(prev_cubes))
 }
 
-fn parse_initial_state(lines: Vec<String>) -> HashSet<Vec<isize>> {
+fn parse_initial_state(lines: Vec<String>, four_dimensions: bool) -> HashSet<Vec<isize>> {
     let mut point_set = HashSet::new();
     for i in 0..lines.len() {
         let active_in_line = lines[i]
@@ -71,14 +71,19 @@ fn parse_initial_state(lines: Vec<String>) -> HashSet<Vec<isize>> {
             .map(|(idx, _)| idx);
 
         for j in active_in_line {
-            point_set.insert(vec![j as isize, i as isize, 0]);
+            if four_dimensions {
+                point_set.insert(vec![j as isize, i as isize, 0, 0]);
+            } else {
+                point_set.insert(vec![j as isize, i as isize, 0]);
+            }
         }
     }
     point_set
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
-    let initial_state = parse_initial_state(parse(input)?.take_while(|s| *s != "").collect());
+    let initial_state =
+        parse_initial_state(parse(input)?.take_while(|s| *s != "").collect(), false);
     println!(
         "The answer to part one is {}",
         cycle_cubes(initial_state, 6).len()
@@ -86,8 +91,13 @@ pub fn part1(input: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    let initial_state = parse_initial_state(parse(input)?.take_while(|s| *s != "").collect(), true);
+    println!(
+        "The answer to part one is {}",
+        cycle_cubes(initial_state, 6).len()
+    );
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -121,11 +131,20 @@ fn test_neighbours() {
 
 #[test]
 fn test_cycle_cubes() {
-    let example = parse_initial_state(vec![
-        ".#.".to_string(),
-        "..#".to_string(),
-        "###".to_string(),
-    ]);
+    let example = parse_initial_state(
+        vec![".#.".to_string(), "..#".to_string(), "###".to_string()],
+        false,
+    );
 
     assert_eq!(cycle_cubes(example, 6).len(), 112);
+}
+
+#[test]
+fn test_cycle_cubes_4d() {
+    let example = parse_initial_state(
+        vec![".#.".to_string(), "..#".to_string(), "###".to_string()],
+        true,
+    );
+
+    assert_eq!(cycle_cubes(example, 6).len(), 848);
 }
