@@ -545,6 +545,8 @@ version = "0.1.0"
 dependencies = [
  "aoc2020",
  "color-eyre",
+ "itertools",
+ "regex",
  "structopt",
  "thiserror",
 ]
