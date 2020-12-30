@@ -84,6 +84,39 @@ fn non_allergen_appearances(foods: Vec<Food>) -> usize {
         .sum()
 }
 
+fn dangerous_ingredient_list(foods: Vec<Food>) -> String {
+    let mut confirmed_allergies: HashMap<String, String> = HashMap::new();
+    let mut potential_allergens = build_allergen_list(&foods);
+    let mut identified_ingredients: HashSet<String> = HashSet::new();
+
+    while potential_allergens.len() > 0 {
+        let newly_discovered = potential_allergens
+            .iter()
+            .filter_map(|(k, v)| {
+                let mut opts = (*v).clone();
+                opts.retain(|i| !identified_ingredients.contains(i));
+                if opts.len() == 1 {
+                    Some((k.clone(), opts.iter().next().unwrap().clone()))
+                } else {
+                    None
+                }
+            })
+            .collect::<HashMap<String, String>>();
+
+        for (allergen, causing_ingredient) in newly_discovered {
+            potential_allergens.remove(&allergen);
+            confirmed_allergies.insert(allergen, causing_ingredient.clone());
+            identified_ingredients.insert(causing_ingredient.clone());
+        }
+    }
+
+    confirmed_allergies
+        .keys()
+        .sorted()
+        .map(|k| confirmed_allergies[k].clone())
+        .join(",")
+}
+
 pub fn part1(input: &Path) -> Result<(), Error> {
     let foods: Vec<Food> = parse::<Food>(input)?.collect();
     println!(
@@ -93,8 +126,13 @@ pub fn part1(input: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    let foods: Vec<Food> = parse::<Food>(input)?.collect();
+    println!(
+        "The answer to part one is {}",
+        dangerous_ingredient_list(foods)
+    );
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -117,4 +155,22 @@ fn test_non_allergen_appearances() {
     .collect();
 
     assert_eq!(non_allergen_appearances(example), 5);
+}
+
+#[test]
+fn test_dangerous_ingredient_list() {
+    let example: Vec<Food> = [
+        "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)",
+        "trh fvjkl sbzzf mxmxvkd (contains dairy)",
+        "sqjhc fvjkl (contains soy)",
+        "sqjhc mxmxvkd sbzzf (contains fish)",
+    ]
+    .iter()
+    .map(|s| Food::from_str(s).unwrap())
+    .collect();
+
+    assert_eq!(
+        dangerous_ingredient_list(example),
+        "mxmxvkd,sqjhc,fvjkl".to_string()
+    );
 }
