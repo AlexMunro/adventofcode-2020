@@ -1,64 +1,99 @@
 use aoc2020::parse;
 
-use std::collections::VecDeque;
+use std::collections::HashMap;
 use std::path::Path;
 use thiserror::Error;
 
-fn simulate_moves(initial_order: String, n: usize) -> String {
-    let mut ordering = VecDeque::new();
-    for c in initial_order.chars() {
-        ordering.push_back(c.to_digit(10).unwrap());
-    }
-
+fn simulate_moves(ordering: &mut HashMap<usize, usize>, first: usize, n: usize, max: usize) {
+    let mut current_cup = first;
     for _ in 0..n {
-        let current_cup = ordering.pop_front().unwrap();
-        ordering.push_back(current_cup);
+        let cup_0 = ordering[&current_cup];
+        let cup_1 = ordering[&cup_0];
+        let cup_2 = ordering[&cup_1];
+        let after_cups = ordering[&cup_2];
 
-        let cup_0 = ordering.pop_front().unwrap();
-        let cup_1 = ordering.pop_front().unwrap();
-        let cup_2 = ordering.pop_front().unwrap();
+        let invalid_destinations = [current_cup, cup_0, cup_1, cup_2];
 
-        let destination = *ordering
-            .iter()
-            .filter(|c| **c < current_cup)
-            .max()
-            .unwrap_or(ordering.iter().max().unwrap());
-
-        let mut next_cup = ordering.pop_front().unwrap();
-
-        let mut steps_to_return = 0;
-
-        while next_cup != destination {
-            ordering.push_back(next_cup);
-            next_cup = ordering.pop_front().unwrap();
-            steps_to_return += 1;
+        let mut destination = current_cup - 1;
+        while destination == 0 || invalid_destinations.contains(&destination) {
+            if destination == 0 {
+                destination = max;
+            } else {
+                destination -= 1;
+            }
         }
 
-        ordering.push_front(cup_2);
-        ordering.push_front(cup_1);
-        ordering.push_front(cup_0);
-        ordering.push_front(next_cup);
+        let new_after_cups = ordering[&destination];
+        ordering.insert(current_cup, after_cups);
+        ordering.insert(destination, cup_0);
+        ordering.insert(cup_2, new_after_cups);
 
-        for _ in 0..steps_to_return {
-            let temp = ordering.pop_back().unwrap();
-            ordering.push_front(temp);
-        }
+        current_cup = ordering[&current_cup] as usize;
+    }
+}
+
+fn simulate_hundred_moves(initial_order: String) -> String {
+    let mut ordering = HashMap::new();
+
+    let from_chars = initial_order
+        .chars()
+        .map(|c| c.to_digit(10).unwrap() as usize);
+    let to_chars = initial_order
+        .chars()
+        .cycle()
+        .skip(1)
+        .map(|c| c.to_digit(10).unwrap() as usize);
+
+    for (from, to) in from_chars.zip(to_chars) {
+        ordering.insert(from, to);
+    }
+    let first = initial_order.chars().next().unwrap().to_digit(10).unwrap() as usize;
+
+    simulate_moves(&mut ordering, first, 100, 9);
+
+    let mut final_ordering: Vec<usize> = Vec::new();
+    let mut index = 1;
+
+    for _ in 0..initial_order.len() - 1 {
+        index = ordering[&index];
+        final_ordering.push(index);
     }
 
-    // Getting the correct position
-    let mut removed_cup = ordering.pop_front().unwrap();
-
-    while removed_cup != 1 {
-        ordering.push_back(removed_cup);
-        removed_cup = ordering.pop_front().unwrap();
-    }
-
-    ordering
-        .into_iter()
-        .take(initial_order.len() - 1)
+    final_ordering
+        .iter()
         .map(|d| d.to_string())
         .collect::<Vec<String>>()
         .join("")
+}
+
+fn simulate_ten_million_moves(initial_order: String) -> usize {
+    let first = initial_order.chars().next().unwrap().to_digit(10).unwrap() as usize;
+    let last_initial = initial_order.chars().last().unwrap().to_digit(10).unwrap() as usize;
+
+    let mut ordering = HashMap::<usize, usize>::new();
+    let from_chars = initial_order
+        .chars()
+        .map(|c| c.to_digit(10).unwrap() as usize);
+    let to_chars = initial_order
+        .chars()
+        .cycle()
+        .skip(1)
+        .map(|c| c.to_digit(10).unwrap() as usize);
+
+    for (from, to) in from_chars.zip(to_chars) {
+        ordering.insert(from, to);
+    }
+
+    ordering.insert(last_initial, 10);
+
+    for i in 10..1_000_000 {
+        ordering.insert(i, i + 1);
+    }
+    ordering.insert(1_000_000, first);
+
+    simulate_moves(&mut ordering, first, 10_000_000, 1_000_000);
+
+    ordering[&1] * ordering[&ordering[&1]]
 }
 
 pub fn part1(input: &Path) -> Result<(), Error> {
@@ -66,14 +101,21 @@ pub fn part1(input: &Path) -> Result<(), Error> {
 
     println!(
         "The answer to part one is {:?}",
-        simulate_moves(initial_order, 100)
+        simulate_hundred_moves(initial_order)
     );
 
     Ok(())
 }
 
-pub fn part2(_input: &Path) -> Result<(), Error> {
-    unimplemented!()
+pub fn part2(input: &Path) -> Result<(), Error> {
+    let initial_order = parse::<String>(input)?.next().unwrap();
+
+    println!(
+        "The answer to part two is {:?}",
+        simulate_ten_million_moves(initial_order)
+    );
+
+    Ok(())
 }
 
 #[derive(Debug, Error)]
@@ -84,7 +126,13 @@ pub enum Error {
 
 #[cfg(test)]
 #[test]
-fn test_simulate_moves() {
+fn test_simulate_hundred_moves() {
     let example = "389125467".to_string();
-    assert_eq!(simulate_moves(example, 100), "67384529");
+    assert_eq!(simulate_hundred_moves(example), "67384529");
+}
+
+#[test]
+fn test_simulate_ten_million_moves() {
+    let example = "389125467".to_string();
+    assert_eq!(simulate_ten_million_moves(example), 149245887792);
 }
