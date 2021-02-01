@@ -16,7 +16,7 @@ fn get_key(card_key: usize, door_key: usize) -> usize {
         subj = (subj * 7) % MODULO;
         card_priv += 1;
     }
-    
+
     transform(door_key, card_priv)
 }
 
@@ -48,7 +48,7 @@ fn test_get_key() {
 }
 
 #[test]
-fn test_transform(){
+fn test_transform() {
     assert_eq!(transform(17807724, 8), 14897079);
     assert_eq!(transform(5764801, 11), 14897079);
 }
